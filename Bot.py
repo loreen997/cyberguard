@@ -67,13 +67,7 @@ class MyClient(discord.Client):
                         )
 
                         # Guardar solo el tercer insulto en la base de datos
-                        guardar_mensaje(
-                            autor,  # Autor del mensaje
-                            datetime.now(),  # Fecha y hora actual
-                            "Discord",  # Plataforma (Discord)
-                            contenido  # Contenido del mensaje
-                        )
-
+                        guardar_mensaje(autor,  datetime.now(), "Discord",  contenido  )
                         # Reiniciar el ciclo después del tercer insulto
                         self.usuarios_insultos[user_id] = 0
 
