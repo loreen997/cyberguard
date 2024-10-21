@@ -18,6 +18,7 @@
 # if __name__ == "__main__":
 #     main()
 # main.py
+#PIPOOOO
 from Bot import MyClient  # Asegúrate de que apunte correctamente a tu archivo Bot.py
 from detector import InsultoDetector  # Tu clase de detector de insultos
 
