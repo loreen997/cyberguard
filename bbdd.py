@@ -41,3 +41,12 @@ def contar_mensajes_usuario(autor):
     ''', (autor,))
     resultado = cursor.fetchone()
     return resultado[0] if resultado else 0
+
+
+def obtener_mensajes_usuario(autor):
+    cursor.execute('''
+        SELECT diahora, mensaje FROM mensajes WHERE autor = %s
+    ''', (autor,))
+    resultados = cursor.fetchall()
+    mensajes = [{'diahora': resultado[0], 'mensaje': resultado[1]} for resultado in resultados]
+    return mensajes

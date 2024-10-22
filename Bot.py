@@ -88,11 +88,10 @@ async def contexto(interaction: discord.Interaction, numero_de_mensajes: int):
     mensajes = [msg async for msg in interaction.channel.history(limit=numero_de_mensajes)]
 
     # Formatear los mensajes para enviarlos por privado
-    contexto_mensajes = "\n\n".join([f"{msg.author.name}: {msg.content}" for msg in mensajes])
+    contexto_mensajes = "".join([f"{msg.author.name}: {msg.content}" for msg in mensajes])
 
     # Enviar el contexto por mensaje privado
-    await interaction.user.send(
-        f"Aquí tienes los últimos {numero_de_mensajes} mensajes del canal:\n\n{contexto_mensajes}")
+    await interaction.user.send(f"{contexto_mensajes}")
 
     # Eliminar el mensaje que invocó el comando en el canal principal sin dejar rastro
     if interaction.message:

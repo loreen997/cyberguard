@@ -4,11 +4,12 @@ from email.mime.text import MIMEText
 import requests
 
 from detector import InsultoDetector
-from bbdd import guardar_mensaje, contar_mensajes_usuario
+from bbdd import guardar_mensaje, contar_mensajes_usuario, obtener_mensajes_usuario
 from datetime import datetime
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
+from Denuncia import enviar_denuncia
 
 # Crear una instancia de FastAPI
 app = FastAPI()
@@ -70,6 +71,15 @@ def procesar_mensaje(message):
             mensajes_guardados = contar_mensajes_usuario(autor)
 
             if mensajes_guardados >= 3:
+                # Obtener los mensajes del usuario de la base de datos
+                mensajes = obtener_mensajes_usuario(autor)
+
+                # Enviar correo de denuncia
+                email_destino = "denunciasrecibir@gmail.com"  # Dirección del administrador o moderador
+                enviar_denuncia(email_destino, autor, mensajes)
+
+
+
                 # Enviar notificación adicional de denuncia
                 respuesta += (f"\nAdemás, ya has enviado {mensajes_guardados} mensajes ofensivos."
                               " Por lo tanto, has sido denunciado a los administradores del servidor.")
@@ -126,6 +136,7 @@ async def context_mensaje_api(message: str):
     Endpoint para recibir y contextualizar un mensaje desde Discord.
     """
     respuesta = context_mensaje(message)
+    print(respuesta)
     return {"respuesta": respuesta}
  
 @app.get("/estado/")
