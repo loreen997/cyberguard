@@ -63,7 +63,7 @@ def procesar_mensaje(message):
                          " Si continúas, podrías ser denunciado por comportamiento inapropiado.")
 
             # Guardamos el mensaje en la base de datos
-            guardar_mensaje(autor, datetime.now(), "Discord", contenido)
+            guardar_mensaje(autor, datetime.now(), "Discord",canal, contenido)
 
             # Reiniciar el contador después del tercer insulto
             usuarios_insultos[user_id] = 0
