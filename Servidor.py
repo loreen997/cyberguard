@@ -3,7 +3,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from detector import InsultoDetector
-from bbdd import guardar_mensaje
+from bbdd import guardar_mensaje, contar_mensajes_usuario
 from datetime import datetime
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -63,7 +63,15 @@ def procesar_mensaje(message):
                          " Si continúas, podrías ser denunciado por comportamiento inapropiado.")
 
             # Guardamos el mensaje en la base de datos
-            guardar_mensaje(autor, datetime.now(), "Discord",canal, contenido)
+            guardar_mensaje(autor, datetime.now(), "Discord", canal, contenido)
+
+            # Contamos los mensajes ofensivos en la base de datos
+            mensajes_guardados = contar_mensajes_usuario(autor)
+
+            if mensajes_guardados >= 3:
+                # Enviar notificación adicional de denuncia
+                respuesta += (f"\nAdemás, ya has enviado {mensajes_guardados} mensajes ofensivos."
+                              " Por lo tanto, has sido denunciado a los administradores del servidor.")
 
             # Reiniciar el contador después del tercer insulto
             usuarios_insultos[user_id] = 0

@@ -29,5 +29,15 @@ try:
         conn.commit()
         print(f'Mensaje guardado en la base de datos: {mensaje}')
 
+
+
 except Exception as e:
     print(f'Error al conectar a la base de datos: {e}')
+
+
+def contar_mensajes_usuario(autor):
+    cursor.execute('''
+        SELECT COUNT(*) FROM mensajes WHERE autor = %s
+    ''', (autor,))
+    resultado = cursor.fetchone()
+    return resultado[0] if resultado else 0
