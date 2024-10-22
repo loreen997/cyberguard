@@ -1,5 +1,6 @@
 from Bot import iniciar_bot
 from Servidor import iniciar_servidor
+
 import threading
 
 def main():
@@ -9,6 +10,7 @@ def main():
 
     # Iniciar el bot en el hilo principal
     iniciar_bot()
+
 
 if __name__ == "__main__":
     main()

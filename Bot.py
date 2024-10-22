@@ -50,6 +50,10 @@ class MyClient(discord.Client):
 # Crear una instancia del bot y añadir el comando slash
 client = MyClient()
 
+
+
+########################################################################################################################
+#                                                           GRAMATICA DE /CONTEXTO
 # Añadimos el comando al árbol de comandos del bot
 @client.tree.command(name="contexto", description="Obtén los últimos mensajes del canal.")
 async def contexto(interaction: discord.Interaction, numero_de_mensajes: int):
@@ -74,6 +78,7 @@ async def contexto(interaction: discord.Interaction, numero_de_mensajes: int):
     if interaction.message:
         await interaction.message.delete()
 
+########################################################################################################################
 
 def iniciar_bot():
     TOKEN = os.getenv('DISCORD_TOKEN', 'MTI5MDgwNzU3MjM3NDM1NTk2OQ.GaP35R.G6D0L_KxM_tqMRQOztvB1YnVcp93dbC2PFOOUE')
