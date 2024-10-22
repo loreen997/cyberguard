@@ -39,7 +39,7 @@ class MyClient(discord.Client):
                 'user_id': message.author.id,
                 'contenido': message.content,
                 'canal': 'privado',
-                'diahora': message.created_at
+                'diahora': message.created_at.isoformat()
 
             }
             # Guardar el mensaje en la lista local
@@ -52,15 +52,15 @@ class MyClient(discord.Client):
                 'user_id': message.author.id,
                 'contenido': message.content,
                 'canal': message.channel.name,
-                'diahora': message.created_at
+                'diahora': message.created_at.isoformat()
 
             }
 
         # Procesar el mensaje en los canales públicos
-        response = requests.request("POST", "http://localhost:8000/procesar-mensaje/", data=mensaje_info)
-        print("Respones: {response}")
-        respuesta_privada = response['respuesta']
-        eliminar_mensaje = response['eliminar']
+        response = requests.request("POST", "http://localhost:8000/procesar-mensaje/", json=mensaje_info)
+        print(f"Respones: {response}")
+        respuesta_privada = response.json().get('respuesta')
+        eliminar_mensaje = response.json().get('eliminar')
 
         if eliminar_mensaje:
             await message.delete()  # Eliminar el mensaje ofensivo del canal público
