@@ -14,17 +14,18 @@ try:
             autor TEXT NOT NULL,
             diahora TIMESTAMP NOT NULL,
             plataforma TEXT NOT NULL,
+            canal TEXT NOT  NULL,
             mensaje TEXT NOT NULL
         )
     ''')
     conn.commit()
 
-    def guardar_mensaje(autor, diahora, plataforma, mensaje):
+    def guardar_mensaje(autor, diahora, plataforma, canal, mensaje):
         formato_fecha_hora = diahora.strftime('%Y-%m-%d %H:%M:%S')
         cursor.execute('''
-                INSERT INTO mensajes (autor, diahora, plataforma, mensaje) 
-                VALUES (%s, %s, %s, %s)
-            ''', (autor, formato_fecha_hora, plataforma, mensaje))
+                INSERT INTO mensajes (autor, diahora, plataforma,canal, mensaje) 
+                VALUES (%s, %s, %s,%s, %s)
+            ''', (autor, formato_fecha_hora, plataforma, canal, mensaje))
         conn.commit()
         print(f'Mensaje guardado en la base de datos: {mensaje}')
 

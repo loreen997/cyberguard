@@ -1,3 +1,7 @@
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 from detector import InsultoDetector
 from bbdd import guardar_mensaje
 from datetime import datetime
@@ -19,6 +23,8 @@ class Mensaje(BaseModel):
     user_id: int
     contenido: str
     canal: str
+
+
 
 def procesar_mensaje(message):
     """
@@ -89,4 +95,4 @@ def iniciar_servidor():
     """
     import uvicorn
     print("Servidor FastAPI iniciado y listo para recibir mensajes.")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8000)
