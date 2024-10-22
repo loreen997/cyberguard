@@ -100,7 +100,7 @@ def context_mensaje(mensaje):
         "messages": [
             {
                 "role": "user",
-                "content": "quiero que aceptes el rol para los mensajes que te aporte entre --- y con formato autor:mensaje me interpretes lo que quieren decir para ayudar a una persona con problemas de socialización: ---" + mensaje
+                "content": "quiero que aceptes el rol para los mensajes que te aporte despues de --- y con formato autor:mensaje me interpretes lo que quieren decir para ayudar a una persona con problemas de socialización: ---" + mensaje #+ "Importante responde unicamente los mensajes absolutamente ningun texto mas"
             }
         ],
         "model": "unsloth/Llama-3.2-1B-Instruct-GGUF",
@@ -115,11 +115,12 @@ def context_mensaje(mensaje):
     response = requests.request("POST", "http://localhost:3000/v1/chat/completions", headers={'accept': 'text/event-stream' }, json=mensaje_ia) 
     print(f"mensajes: {mensaje}")
     print(f"Response {response.json()}")
-    mensaje_respuesta = ""
+    mensaje_respuesta = response.json()
 
 
 
-    return response.json()
+    return mensaje_respuesta['choices'][0]['message']['content'] 
+
 
 
 @app.post("/procesar-mensaje/")
