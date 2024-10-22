@@ -1,4 +1,6 @@
 import discord
+import requests
+import json
 from discord import app_commands
 
 import Servidor
@@ -55,7 +57,10 @@ class MyClient(discord.Client):
             }
 
         # Procesar el mensaje en los canales públicos
-        respuesta_privada, eliminar_mensaje = procesar_mensaje(mensaje_info)
+        response = requests.request("POST", "http://localhost:8000/procesar-mensaje/", data=mensaje_info)
+        print("Respones: {response}")
+        respuesta_privada = response['respuesta']
+        eliminar_mensaje = response['eliminar']
 
         if eliminar_mensaje:
             await message.delete()  # Eliminar el mensaje ofensivo del canal público
