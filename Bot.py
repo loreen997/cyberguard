@@ -1,5 +1,7 @@
 import discord
 from discord import app_commands
+
+import Servidor
 from Servidor import procesar_mensaje
 import os
 
@@ -28,22 +30,31 @@ class MyClient(discord.Client):
             return
 
         # Si el mensaje es por privado (DM), lo almacenamos en la lista local en vez de en la base de datos
+
+        if isinstance(message.channel, discord.DMChannel):
             mensaje_info = {
                 'autor': message.author.name,
-                'user_id': message.user_id,
+                'user_id': message.author.id,
                 'contenido': message.content,
-                'canal': "privado",
+                'canal': 'privado',
                 'diahora': message.created_at
 
             }
-        if isinstance(message.channel, discord.DMChannel):
             # Guardar el mensaje en la lista local
             mensajes_privados.append(mensaje_info)
             print(f"Mensaje privado recibido y almacenado: {mensaje_info}")
             return
+        else:
+            mensaje_info = {
+                'autor': message.author.name,
+                'user_id': message.author.id,
+                'contenido': message.content,
+                'canal': message.channel.name,
+                'diahora': message.created_at
+
+            }
 
         # Procesar el mensaje en los canales públicos
-        mensaje_info.canal = message.channel
         respuesta_privada, eliminar_mensaje = procesar_mensaje(mensaje_info)
 
         if eliminar_mensaje:
