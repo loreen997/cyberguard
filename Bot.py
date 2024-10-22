@@ -1,12 +1,16 @@
 import discord
-from discord import app_commands, client
+from discord import app_commands
 from Servidor import procesar_mensaje
 import os
+
 
 # Configuración de intents
 intents = discord.Intents.default()
 intents.messages = True
 intents.message_content = True
+
+# Lista local para almacenar los mensajes privados (DMs)
+mensajes_privados = []
 
 
 class MyClient(discord.Client):
@@ -23,7 +27,19 @@ class MyClient(discord.Client):
         if message.author == self.user:
             return
 
-        # Procesamos el mensaje a través del servidor
+        # Si el mensaje es por privado (DM), lo almacenamos en la lista local en vez de en la base de datos
+        if isinstance(message.channel, discord.DMChannel):
+            # Guardar el mensaje en la lista local
+            mensaje_info = {
+                'autor': message.author.name,
+                'contenido': message.content,
+                'diahora': message.created_at
+            }
+            mensajes_privados.append(mensaje_info)
+            print(f"Mensaje privado recibido y almacenado: {mensaje_info}")
+            return
+
+        # Procesar el mensaje en los canales públicos
         respuesta_privada, eliminar_mensaje = procesar_mensaje(message)
 
         if eliminar_mensaje:
@@ -31,15 +47,21 @@ class MyClient(discord.Client):
             await message.author.send(respuesta_privada)  # Enviar la advertencia por privado
 
 
-# Definimos el comando slash /contexto
+# Crear una instancia del bot y añadir el comando slash
+client = MyClient()
+
+# Añadimos el comando al árbol de comandos del bot
+@client.tree.command(name="contexto", description="Obtén los últimos mensajes del canal.")
 async def contexto(interaction: discord.Interaction, numero_de_mensajes: int):
+    # Defiere la respuesta de la interacción para evitar que expire
+    await interaction.response.defer(ephemeral=True)
+
     # Verificar que el número de mensajes sea válido
     if numero_de_mensajes <= 0:
-        await interaction.response.send_message("Por favor, proporciona un número válido de mensajes.", ephemeral=True)
         return
 
     # Obtener los últimos 'numero_de_mensajes' del canal
-    mensajes = await interaction.channel.history(limit=numero_de_mensajes).flatten()
+    mensajes = [msg async for msg in interaction.channel.history(limit=numero_de_mensajes)]
 
     # Formatear los mensajes para enviarlos por privado
     contexto_mensajes = "\n\n".join([f"{msg.author.name}: {msg.content}" for msg in mensajes])
@@ -48,13 +70,9 @@ async def contexto(interaction: discord.Interaction, numero_de_mensajes: int):
     await interaction.user.send(
         f"Aquí tienes los últimos {numero_de_mensajes} mensajes del canal:\n\n{contexto_mensajes}")
 
-    # Confirmación de que el mensaje se ha enviado
-    await interaction.response.send_message(f"Te he enviado los últimos {numero_de_mensajes} mensajes por privado.",
-                                            ephemeral=True)
-
-
-# Crear una instancia del bot y añadir el comando slash
-client = MyClient()
+    # Eliminar el mensaje que invocó el comando en el canal principal sin dejar rastro
+    if interaction.message:
+        await interaction.message.delete()
 
 
 def iniciar_bot():
