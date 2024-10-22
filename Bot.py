@@ -32,15 +32,18 @@ class MyClient(discord.Client):
             # Guardar el mensaje en la lista local
             mensaje_info = {
                 'autor': message.author.name,
+                'user_id': message.user_id,
                 'contenido': message.content,
+                'canal': message.chanel,
                 'diahora': message.created_at
+
             }
             mensajes_privados.append(mensaje_info)
             print(f"Mensaje privado recibido y almacenado: {mensaje_info}")
             return
 
         # Procesar el mensaje en los canales públicos
-        respuesta_privada, eliminar_mensaje = procesar_mensaje(message)
+        respuesta_privada, eliminar_mensaje = procesar_mensaje(mensaje_info)
 
         if eliminar_mensaje:
             await message.delete()  # Eliminar el mensaje ofensivo del canal público

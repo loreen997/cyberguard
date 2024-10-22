@@ -37,6 +37,7 @@ def procesar_mensaje(message):
     user_id = message.user_id
     contenido = message.contenido
     canal = message.canal
+    diahora = message.diahora
 
     # Detectamos si el mensaje contiene un insulto
     etiqueta, puntuacion = detector.detectar_insulto(contenido)
