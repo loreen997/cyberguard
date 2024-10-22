@@ -23,6 +23,7 @@ class Mensaje(BaseModel):
     user_id: int
     contenido: str
     canal: str
+    diahora: str
 
 
 
