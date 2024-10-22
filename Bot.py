@@ -1,77 +1,62 @@
 import discord
-from datetime import datetime
-from collections import defaultdict
-from bbdd import guardar_mensaje  # Asegúrate de que esta función esté implementada
+from discord import app_commands, client
+from Servidor import procesar_mensaje
+import os
 
-# Configurar el intent para permitir la lectura de mensajes públicos y privados
+# Configuración de intents
 intents = discord.Intents.default()
 intents.messages = True
-intents.message_content = True  # Necesario para leer el contenido de los mensajes
+intents.message_content = True
 
 
 class MyClient(discord.Client):
-    def __init__(self, detector=None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(intents=intents, *args, **kwargs)
-        self.detector = detector  # El detector será opcional, solo en mensajes públicos
+        self.tree = app_commands.CommandTree(self)  # Crear árbol de comandos para slash commands
 
-        # Diccionario que guarda cuántas veces ha insultado cada usuario
-        self.usuarios_insultos = defaultdict(int)  # user_id: numero de insultos
-
-    # Evento que se ejecuta cuando el bot está listo
     async def on_ready(self):
         print(f'Bot conectado como {self.user}')
+        await self.tree.sync()  # Sincronizar los slash commands con el servidor
+        print("Comandos slash sincronizados.")
 
-    # Evento que se ejecuta cada vez que un mensaje es enviado
     async def on_message(self, message):
-        # Ignora los mensajes del propio bot
         if message.author == self.user:
             return
 
-        # Detectar si el mensaje es público
-        if not isinstance(message.channel, discord.DMChannel):
-            autor = message.author.name
-            contenido = message.content
+        # Procesamos el mensaje a través del servidor
+        respuesta_privada, eliminar_mensaje = procesar_mensaje(message)
 
-            # Si tienes un detector de insultos para los mensajes públicos
-            if self.detector:
-                etiqueta, puntuacion = self.detector.detectar_insulto(contenido)
-                print(f'Clasificación: {etiqueta} (Confianza: {puntuacion:.2f})')
+        if eliminar_mensaje:
+            await message.delete()  # Eliminar el mensaje ofensivo del canal público
+            await message.author.send(respuesta_privada)  # Enviar la advertencia por privado
 
-                # Si se detecta un insulto
-                if etiqueta == 'LABEL_1':  # Cambia 'LABEL_1' por la etiqueta correcta para insultos
-                    await message.delete()  # Eliminar el mensaje inmediatamente
 
-                    user_id = message.author.id  # ID del usuario que envió el mensaje
-                    self.usuarios_insultos[user_id] += 1  # Aumentar el contador de insultos
+# Definimos el comando slash /contexto
+async def contexto(interaction: discord.Interaction, numero_de_mensajes: int):
+    # Verificar que el número de mensajes sea válido
+    if numero_de_mensajes <= 0:
+        await interaction.response.send_message("Por favor, proporciona un número válido de mensajes.", ephemeral=True)
+        return
 
-                    # Obtener el número de veces que ha insultado
-                    numero_de_insultos = self.usuarios_insultos[user_id]
+    # Obtener los últimos 'numero_de_mensajes' del canal
+    mensajes = await interaction.channel.history(limit=numero_de_mensajes).flatten()
 
-                    if numero_de_insultos == 1:
-                        # Primer insulto
-                        await message.author.send(
-                            f"Hola {autor}, hemos detectado que tu mensaje ( {contenido} ) en el canal #{message.channel.name} contenía un insulto.\n"
-                            "Este tipo de comportamiento no está permitido. Por favor, evita usar lenguaje ofensivo."
-                        )
-                    elif numero_de_insultos == 2:
-                        # Segundo insulto
-                        await message.author.send(
-                            f"Hola {autor}, este es tu segundo mensaje que contiene un insulto en el canal #{message.channel.name}.\n"
-                            "Por favor, detén este comportamiento. De lo contrario, se podrían tomar acciones más severas."
-                        )
-                    elif numero_de_insultos == 3:
-                        # Tercer insulto - Advertencia de denuncia
-                        await message.author.send(
-                            f"Hola {autor}, este es tu tercer mensaje con insultos detectado en el canal #{message.channel.name}.\n"
-                            "Si continúas con este comportamiento, podrías ser denunciado por lenguaje inapropiado. Te pedimos que seas respetuoso."
-                        )
+    # Formatear los mensajes para enviarlos por privado
+    contexto_mensajes = "\n\n".join([f"{msg.author.name}: {msg.content}" for msg in mensajes])
 
-                        # Guardar solo el tercer insulto en la base de datos
-                        guardar_mensaje(autor,  datetime.now(), "Discord",  contenido  )
-                        # Reiniciar el ciclo después del tercer insulto
-                        self.usuarios_insultos[user_id] = 0
+    # Enviar el contexto por mensaje privado
+    await interaction.user.send(
+        f"Aquí tienes los últimos {numero_de_mensajes} mensajes del canal:\n\n{contexto_mensajes}")
 
-                else:
-                    # Si el mensaje no es un insulto, reiniciar el contador de insultos
-                    user_id = message.author.id
-                    self.usuarios_insultos[user_id] = 0  # Reiniciar el contador si envía un mensaje normal
+    # Confirmación de que el mensaje se ha enviado
+    await interaction.response.send_message(f"Te he enviado los últimos {numero_de_mensajes} mensajes por privado.",
+                                            ephemeral=True)
+
+
+# Crear una instancia del bot y añadir el comando slash
+client = MyClient()
+
+
+def iniciar_bot():
+    TOKEN = os.getenv('DISCORD_TOKEN', 'MTI5MDgwNzU3MjM3NDM1NTk2OQ.GaP35R.G6D0L_KxM_tqMRQOztvB1YnVcp93dbC2PFOOUE')
+    client.run(TOKEN)
