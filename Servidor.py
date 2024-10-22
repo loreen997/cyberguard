@@ -1,6 +1,7 @@
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import requests
 
 from detector import InsultoDetector
 from bbdd import guardar_mensaje
@@ -75,6 +76,33 @@ def procesar_mensaje(message):
         # Si no es un insulto, reiniciamos el contador de insultos
         usuarios_insultos[user_id] = 0
         return None, False  # No enviar ninguna respuesta ni eliminar el mensaje
+def context_mensaje(mensaje):
+    
+    mensaje_ia = {
+        "messages": [
+            {
+                "role": "user",
+                "content": "quiero que aceptes el rol para los mensajes que te aporte entre --- y con formato autor:mensaje me interpretes lo que quieren decir para ayudar a una persona con problemas de socialización: ---" + mensaje
+            }
+        ],
+        "model": "unsloth/Llama-3.2-1B-Instruct-GGUF",
+        "max_tokens": 2048,
+        "stream": False,  
+        "temperature": 0,
+        "top_p": 1,
+        "frequency_penalty": 0
+    }
+
+
+    response = requests.request("POST", "http://localhost:3000/v1/chat/completions", headers={'accept': 'text/event-stream' }, json=mensaje_ia) 
+    print(f"mensajes: {mensaje}")
+    print(f"Response {response.json()}")
+    mensaje_respuesta = ""
+
+
+
+    return mensaje_respuesta
+
 
 @app.post("/procesar-mensaje/")
 async def procesar_mensaje_api(message: Mensaje):
@@ -84,6 +112,14 @@ async def procesar_mensaje_api(message: Mensaje):
     respuesta, eliminar = procesar_mensaje(message)
     return {"respuesta": respuesta, "eliminar": eliminar}
 
+@app.post("/context-mensaje/")
+async def context_mensaje_api(message: str):
+    """           
+    Endpoint para recibir y contextualizar un mensaje desde Discord.
+    """
+    respuesta = context_mensaje(message)
+    return {"respuesta": respuesta}
+ 
 @app.get("/estado/")
 async def estado():
     """
