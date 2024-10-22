@@ -119,7 +119,7 @@ def context_mensaje(mensaje):
 
 
 
-    return mensaje_respuesta
+    return response.json()
 
 
 @app.post("/procesar-mensaje/")
