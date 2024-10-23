@@ -156,7 +156,7 @@ async def crear_denuncia_api(nick_del_usuario_a_denunciar: str,nombre_del_usuari
 @app.post("/enviar-denuncia/")
 async def enviar_denuncia_api(cuerpo:str,email_destino:str,nick_del_usuario_a_denunciar:str):
     enviar_denuncia(cuerpo,email_destino,nick_del_usuario_a_denunciar)
-    return {"respuesta": "Vale enviado"}
+    return {"respuesta": "Denuncia Enviada, Muchas gracias."}
 @app.get("/estado/")
 async def estado():
     """
