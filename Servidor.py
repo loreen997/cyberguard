@@ -3,13 +3,14 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import requests
 
+import Denuncia
 from detector import InsultoDetector
 from bbdd import guardar_mensaje, contar_mensajes_usuario, obtener_mensajes_usuario
 from datetime import datetime
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
-from Denuncia import enviar_denuncia
+from Denuncia import crear_denuncia, enviar_denuncia
 
 # Crear una instancia de FastAPI
 app = FastAPI()
@@ -53,39 +54,27 @@ def procesar_mensaje(message):
         usuarios_insultos[user_id] += 1
         numero_de_insultos = usuarios_insultos[user_id]
 
-        # Respuesta personalizada según el número de insultos
-        if numero_de_insultos == 1:
-            respuesta = (f"Hola {autor}, tu mensaje en el canal #{canal} contenía un insulto."
-                         " Por favor, evita usar lenguaje ofensivo.")
-        elif numero_de_insultos == 2:
-            respuesta = (f"Hola {autor}, este es tu segundo insulto en el canal #{canal}."
-                         " Por favor, detente o tomaremos acciones más serias.")
-        elif numero_de_insultos == 3:
-            respuesta = (f"Hola {autor}, este es tu tercer insulto en el canal #{canal}."
-                         " Si continúas, podrías ser denunciado por comportamiento inapropiado.")
+      # # Respuesta personalizada según el número de insultos
+      # if numero_de_insultos == 1:
+      #     respuesta = (f"Hola {autor}, tu mensaje en el canal #{canal} contenía un insulto."
+      #                  " Por favor, evita usar lenguaje ofensivo.")
+      # elif numero_de_insultos == 2:
+      #     respuesta = (f"Hola {autor}, este es tu segundo insulto en el canal #{canal}."
+      #                  " Por favor, detente o tomaremos acciones más serias.")
+      # elif numero_de_insultos == 3:
+        respuesta = (f"Hola {autor}, este es tu tercer insulto en el canal #{canal}."
+                        " Si continúas, podrías ser denunciado por comportamiento inapropiado.")
 
-            # Guardamos el mensaje en la base de datos
-            guardar_mensaje(autor, datetime.now(), "Discord", canal, contenido)
+        # Guardamos el mensaje en la base de datos
+        guardar_mensaje(autor, datetime.now(), "Discord", canal, contenido)
 
-            # Contamos los mensajes ofensivos en la base de datos
-            mensajes_guardados = contar_mensajes_usuario(autor)
+        # Contamos los mensajes ofensivos en la base de datos
+        #mensajes_guardados = contar_mensajes_usuario(autor)
 
-            if mensajes_guardados >= 3:
-                # Obtener los mensajes del usuario de la base de datos
-                mensajes = obtener_mensajes_usuario(autor)
+        #if mensajes_guardados >= 3:
 
-                # Enviar correo de denuncia
-                email_destino = "denunciasrecibir@gmail.com"  # Dirección del administrador o moderador
-                enviar_denuncia(email_destino, autor, mensajes)
-
-
-
-                # Enviar notificación adicional de denuncia
-                respuesta += (f"\nAdemás, ya has enviado {mensajes_guardados} mensajes ofensivos."
-                              " Por lo tanto, has sido denunciado a los administradores del servidor.")
-
-            # Reiniciar el contador después del tercer insulto
-            usuarios_insultos[user_id] = 0
+        # Reiniciar el contador después del tercer insulto
+        usuarios_insultos[user_id] = 0
 
         # Devolver la respuesta privada y que el mensaje debe ser eliminado
         return respuesta, True
@@ -121,7 +110,21 @@ def context_mensaje(mensaje):
 
     return mensaje_respuesta['choices'][0]['message']['content'] 
 
+def crear_denuncia_server(nick_del_usuario_a_denunciar: str,nombre_del_usuario_a_denunciar :str,nombre_denunciante: str,correo_denunciante: str,nombre_acosado : str ):
+    # Obtener los mensajes del usuario de la base de datos
+    mensajes = obtener_mensajes_usuario(nick_del_usuario_a_denunciar)
 
+    # Enviar correo de denuncia
+    email_destino = "denunciasrecibir@gmail.com"  # Dirección del administrador o moderador
+    cuerpo = crear_denuncia(email_destino, nick_del_usuario_a_denunciar, mensajes, nombre_del_usuario_a_denunciar, nombre_denunciante, correo_denunciante, nombre_acosado)
+
+    # Contamos los mensajes ofensivos en la base de datos
+    mensajes_guardados = contar_mensajes_usuario(nick_del_usuario_a_denunciar)
+
+    # Enviar notificación adicional de denuncia
+    respuesta = (f"\nAdemás, ya has enviado {mensajes_guardados} mensajes ofensivos."
+                  " Por lo tanto, has sido denunciado a los administradores del servidor.")
+    return cuerpo
 
 @app.post("/procesar-mensaje/")
 async def procesar_mensaje_api(message: Mensaje):
@@ -139,7 +142,20 @@ async def context_mensaje_api(message: str):
     respuesta = context_mensaje(message)
     print(respuesta)
     return {"respuesta": respuesta}
- 
+
+@app.post("/crear-denuncia/")
+async def crear_denuncia_api(nick_del_usuario_a_denunciar: str,nombre_del_usuario_a_denunciar :str,nombre_denunciante: str,correo_denunciante: str,nombre_acosado : str ):
+    """
+    Endpoint para recibir y contextualizar un mensaje desde Discord.
+    """
+    email_destino = "denunciasrecibir@gmail.com"
+    cuerpo = crear_denuncia_server(nick_del_usuario_a_denunciar, nombre_del_usuario_a_denunciar, nombre_denunciante, correo_denunciante, nombre_acosado)
+    return {"cuerpo": cuerpo, "email_destino": email_destino,"nick_del_usuario_a_denunciar": nick_del_usuario_a_denunciar}
+
+@app.post("/enviar-denuncia/")
+async def enviar_denuncia_api(cuerpo:str,email_destino:str,nick_del_usuario_a_denunciar:str):
+    enviar_denuncia(cuerpo,email_destino,nick_del_usuario_a_denunciar)
+    return {"respuesta": "Vale enviado"}
 @app.get("/estado/")
 async def estado():
     """
