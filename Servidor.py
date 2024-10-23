@@ -54,27 +54,28 @@ def procesar_mensaje(message):
         usuarios_insultos[user_id] += 1
         numero_de_insultos = usuarios_insultos[user_id]
 
-      # # Respuesta personalizada según el número de insultos
-      # if numero_de_insultos == 1:
-      #     respuesta = (f"Hola {autor}, tu mensaje en el canal #{canal} contenía un insulto."
-      #                  " Por favor, evita usar lenguaje ofensivo.")
-      # elif numero_de_insultos == 2:
-      #     respuesta = (f"Hola {autor}, este es tu segundo insulto en el canal #{canal}."
-      #                  " Por favor, detente o tomaremos acciones más serias.")
-      # elif numero_de_insultos == 3:
-        respuesta = (f"Hola {autor}, este es tu tercer insulto en el canal #{canal}."
+        # # Respuesta personalizada según el número de insultOS
+        if numero_de_insultos == 1:
+            print(user_id)
+            respuesta = (f"Hola {autor}, tu mensaje en el canal #{canal} contenía un insulto."
+                           " Por favor, evita usar lenguaje ofensivo.")
+        elif numero_de_insultos == 2:
+            respuesta = (f"Hola {autor}, este es tu segundo insulto en el canal #{canal}."
+                         " Por favor, detente o tomaremos acciones más serias.")
+        elif numero_de_insultos == 3:
+           respuesta = (f"Hola {autor}, este es tu tercer insulto en el canal #{canal}."
                         " Si continúas, podrías ser denunciado por comportamiento inapropiado.")
+           # Guardamos el mensaje en la base de datos
+           guardar_mensaje(autor, datetime.now(), "Discord", canal, contenido)
 
-        # Guardamos el mensaje en la base de datos
-        guardar_mensaje(autor, datetime.now(), "Discord", canal, contenido)
+           # Reiniciar el contador después del tercer insulto
+           usuarios_insultos[user_id] = 0
 
-        # Contamos los mensajes ofensivos en la base de datos
-        #mensajes_guardados = contar_mensajes_usuario(autor)
 
-        #if mensajes_guardados >= 3:
 
-        # Reiniciar el contador después del tercer insulto
-        usuarios_insultos[user_id] = 0
+
+
+
 
         # Devolver la respuesta privada y que el mensaje debe ser eliminado
         return respuesta, True

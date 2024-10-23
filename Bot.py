@@ -121,7 +121,7 @@ async def denuncia(interaction: discord.Interaction, nick_del_usuario_a_denuncia
                                         "email_destino": response.json().get('email_destino'),
                                         "nick_del_usuario_a_denunciar": response.json().get('nick_del_usuario_a_denunciar'),
                                          })
-    await interaction.user.send(f"{response.json()}")
+    await interaction.user.send(f"{response.json().get('respuesta')}")
     # Eliminar el mensaje que invocó el comando en el canal principal sin dejar rastro
     if interaction.message:
         await interaction.message.delete()
