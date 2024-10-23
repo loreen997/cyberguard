@@ -101,6 +101,31 @@ async def contexto(interaction: discord.Interaction, numero_de_mensajes: int):
 
 ########################################################################################################################
 
+
+
+########################################################################################################################
+#                                                           GRAMATICA DE /DENUNCIA
+# Añadimos el comando al árbol de comandos del bot
+@client.tree.command(name="denuncia", description="Denuncia a un miembro del canal que esté haciendo bullying.")
+async def denuncia(interaction: discord.Interaction, nick_del_usuario_a_denunciar: str,nombre_del_usuario_a_denunciar :str,nombre_denunciante: str,correo_denunciante: str,nombre_acosado : str  ):
+    # Defiere la respuesta de la interacción para evitar que expire
+    await interaction.response.defer(ephemeral=True)
+
+    response = requests.request("POST", "http://localhost:8000/context-mensaje/", params={"nick_del_usuario_a_denunciar":nick_del_usuario_a_denunciar,"nombre_del_usuario_a_denunciar":nombre_del_usuario_a_denunciar,"nombre_denunciante":nombre_denunciante,"correo_denunciante":correo_denunciante,"nombre_acosado":nombre_acosado, })
+
+    # Enviar la denuncia por mensaje privado
+    await interaction.user.send(f"{response.json().get('respuesta')}")
+
+    # Eliminar el mensaje que invocó el comando en el canal principal sin dejar rastro
+    if interaction.message:
+        await interaction.message.delete()
+
+########################################################################################################################
+
+
+
+
+
 def iniciar_bot():
     TOKEN = os.getenv('DISCORD_TOKEN', 'MTI5MDgwNzU3MjM3NDM1NTk2OQ.GaP35R.G6D0L_KxM_tqMRQOztvB1YnVcp93dbC2PFOOUE')
     client.run(TOKEN)

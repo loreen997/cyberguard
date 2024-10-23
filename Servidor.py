@@ -112,7 +112,7 @@ def context_mensaje(mensaje):
     }
 
 
-    response = requests.request("POST", "http://localhost:3000/v1/chat/completions", headers={'accept': 'text/event-stream' }, json=mensaje_ia) 
+    response = requests.request("POST", "http://192.168.239.174:3000/v1/chat/completions", headers={'accept': 'text/event-stream' }, json=mensaje_ia)
     print(f"mensajes: {mensaje}")
     print(f"Response {response.json()}")
     mensaje_respuesta = response.json()
